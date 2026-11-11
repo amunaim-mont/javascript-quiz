@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JavaScript Fundamentals Quiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root { --ink:#172033; --muted:#667085; --blue:#4f46e5; --lav:#eef2ff; }
+    body { color:var(--ink); background:linear-gradient(135deg,#f7f8ff 0%,#eef7ff 100%); min-height:100vh; }
+    .hero { background:linear-gradient(120deg,#312e81,#4f46e5 55%,#0ea5e9); color:white; border-radius:0 0 2rem 2rem; }
+    .quiz-card { border:0; border-radius:1rem; box-shadow:0 12px 35px rgba(30,41,59,.09); }
+    .question-card { border:1px solid #e6e9f2; border-radius:1rem; transition:.2s ease; }
+    .question-card:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(30,41,59,.07); }
+    .question-number { background:var(--lav); color:var(--blue); width:2.2rem; height:2.2rem; display:inline-grid; place-items:center; border-radius:50%; font-weight:700; }
+    .choice { display:block; border:1px solid #e4e7ec; border-radius:.7rem; padding:.7rem .9rem; margin:.45rem 0; cursor:pointer; }
+    .choice:hover { background:#f8f9ff; border-color:#a5b4fc; }
+    .choice input { margin-right:.5rem; }
+    .feedback { display:none; border-radius:.75rem; padding:.75rem 1rem; margin-top:1rem; }
+    .feedback.show { display:flex; align-items:center; gap:.7rem; }
+    .feedback.correct { color:#166534; background:#dcfce7; }
+    .feedback.incorrect { color:#991b1b; background:#fee2e2; }
+    .feedback img { width:34px; height:34px; }
+    .score-box { background:#111827; color:white; border-radius:1rem; }
+    .progress { height:.7rem; }
+    .small-label { color:var(--muted); font-size:.88rem; }
+    textarea { min-height:100px; }
+  </style>
+</head>
+<body>
+  <header class="hero py-5 mb-4">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+          <p class="text-uppercase small fw-bold mb-2 opacity-75">CST 336 • Interactive Assessment</p>
+          <h1 class="display-5 fw-bold mb-2">JavaScript Fundamentals Quiz</h1>
+          <p class="lead mb-0">Ten questions • 100 points • Instant feedback</p>
+        </div>
+        <span class="badge bg-light text-primary fs-6 px-3 py-2">Attempt <span id="attemptCount">0</span></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container pb-5">
+    <section class="quiz-card bg-white p-3 p-md-4 mb-4 text-center" aria-labelledby="lesson2-title">
+      <h2 id="lesson2-title" class="h4">Lesson 2 JavaScript Practice</h2>
+      <p class="text-muted">Answer the question, then submit the quiz to see your feedback and score.</p>
+      <div class="mx-auto" style="max-width: 34rem;">
+        <h3 class="h5 text-start"><span id="markImg1"></span> What is the capital of California?</h3>
+        <label for="q1" class="form-label visually-hidden">Answer for question 1</label>
+        <input type="text" id="q1" class="form-control mb-3" placeholder="Type your answer here">
+        <div id="q1Feedback" class="mb-3" aria-live="polite"></div>
+        <h3 class="h5 text-start"><span id="markImg2"></span> What is the longest river?</h3>
+        <label for="q2" class="form-label visually-hidden">Choose the longest river</label>
+        <select id="q2" class="form-select mb-3">
+          <option value="">Select One</option>
+          <option value="ms">Mississippi</option>
+          <option value="mo">Missouri</option>
+          <option value="co">Colorado</option>
+          <option value="de">Delaware</option>
+        </select>
+        <div id="q2Feedback" class="mb-3" aria-live="polite"></div>
+        <h3 class="h5 text-start"><span id="markImg3"></span> What presidents are carved into Mount Rushmore?</h3>
+        <div class="text-start mb-3">
+          <input type="checkbox" id="Jackson"> <label for="Jackson">A. Jackson</label><br>
+          <input type="checkbox" id="Franklin"> <label for="Franklin">B. Franklin</label><br>
+          <input type="checkbox" id="Jefferson"> <label for="Jefferson">T. Jefferson</label><br>
+          <input type="checkbox" id="Roosevelt"> <label for="Roosevelt">T. Roosevelt</label>
+        </div>
+        <div id="q3Feedback" class="mb-3" aria-live="polite"></div>
+        <h3 class="h5 text-start"><span id="markImg4"></span> What is the smallest US state?</h3>
+        <div id="q4Choices" class="text-start mb-3"></div>
+        <div id="q4Feedback" class="mb-3" aria-live="polite"></div>
+        <h3 id="validationFdbk" class="bg-danger text-white fs-6 p-2" aria-live="polite"></h3>
+        <button type="button" id="lesson2Button" class="btn btn-outline-primary">Submit Quiz</button>
+        <h2 id="totalScore" class="text-info fs-4 mt-3"></h2>
+        <h3 id="totalAttempts" class="fs-5 mt-3"></h3>
+        <h3 id="congratsMessage" class="text-success fs-5 mt-3" aria-live="polite"></h3>
+      </div>
+    </section>
+
+    <div class="quiz-card bg-white p-3 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small-label">Progress</span><span id="progressText" class="small-label">0 / 10 answered</span>
+      </div>
+      <div class="progress mb-4" role="progressbar" aria-label="Quiz progress"><div id="progressBar" class="progress-bar bg-primary" style="width:0%"></div></div>
+
+      <form id="quizForm" novalidate>
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="b" data-type="single">
+          <div class="d-flex gap-3"><span class="question-number">1</span><div class="flex-grow-1"><h2 class="h5">Which keyword declares a block-scoped variable that can be reassigned?</h2>
+            <label class="choice"><input type="radio" name="q1" value="a"> <span>const</span></label><label class="choice"><input type="radio" name="q1" value="b"> <span>let</span></label><label class="choice"><input type="radio" name="q1" value="c"> <span>var</span></label><label class="choice"><input type="radio" name="q1" value="d"> <span>static</span></label>
+          </div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="ac" data-type="multi">
+          <div class="d-flex gap-3"><span class="question-number">2</span><div class="flex-grow-1"><h2 class="h5">Which two are valid JavaScript primitive types?</h2>
+            <label class="choice"><input type="checkbox" name="q2" value="a"> <span>string</span></label><label class="choice"><input type="checkbox" name="q2" value="b"> <span>array</span></label><label class="choice"><input type="checkbox" name="q2" value="c"> <span>boolean</span></label><label class="choice"><input type="checkbox" name="q2" value="d"> <span>class</span></label>
+          </div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="c" data-type="single">
+          <div class="d-flex gap-3"><span class="question-number">3</span><div class="flex-grow-1"><h2 class="h5">What does <code>===</code> compare?</h2>
+            <label class="choice"><input type="radio" name="q3" value="a"> <span>Only value after conversion</span></label><label class="choice"><input type="radio" name="q3" value="b"> <span>Only data type</span></label><label class="choice"><input type="radio" name="q3" value="c"> <span>Value and data type without coercion</span></label><label class="choice"><input type="radio" name="q3" value="d"> <span>Variable names only</span></label>
+          </div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="b" data-type="single">
+          <div class="d-flex gap-3"><span class="question-number">4</span><div class="flex-grow-1"><h2 class="h5">Which method adds an item to the end of an array?</h2>
+            <label class="choice"><input type="radio" name="q4" value="a"> <span>shift()</span></label><label class="choice"><input type="radio" name="q4" value="b"> <span>push()</span></label><label class="choice"><input type="radio" name="q4" value="c"> <span>join()</span></label><label class="choice"><input type="radio" name="q4" value="d"> <span>slice()</span></label>
+          </div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="ad" data-type="multi">
+          <div class="d-flex gap-3"><span class="question-number">5</span><div class="flex-grow-1"><h2 class="h5">Which are common DOM selection methods?</h2>
+            <label class="choice"><input type="checkbox" name="q5" value="a"> <span>getElementById()</span></label><label class="choice"><input type="checkbox" name="q5" value="b"> <span>getEveryElement()</span></label><label class="choice"><input type="checkbox" name="q5" value="c"> <span>findNodeByName()</span></label><label class="choice"><input type="checkbox" name="q5" value="d"> <span>querySelector()</span></label>
+          </div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="function" data-type="text">
+          <div class="d-flex gap-3"><span class="question-number">6</span><div class="flex-grow-1"><h2 class="h5">Type the keyword used to declare a traditional function.</h2><input class="form-control" name="q6" aria-label="Answer for question 6" autocomplete="off"></div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="map" data-type="select">
+          <div class="d-flex gap-3"><span class="question-number">7</span><div class="flex-grow-1"><h2 class="h5">Which array method creates a new array by transforming every item?</h2><select class="form-select" name="q7" aria-label="Answer for question 7"><option value="">Choose an answer...</option><option value="filter">filter()</option><option value="map">map()</option><option value="reduce">reduce()</option><option value="sort">sort()</option></select></div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="3" data-type="number">
+          <div class="d-flex gap-3"><span class="question-number">8</span><div class="flex-grow-1"><h2 class="h5">How many items are in <code>[10, 20, 30]</code>?</h2><input class="form-control" type="number" min="0" name="q8" aria-label="Answer for question 8"></div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="8" data-type="range">
+          <div class="d-flex gap-3"><span class="question-number">9</span><div class="flex-grow-1"><h2 class="h5">Use the slider: what is the value of <code>2 + 6</code>?</h2><input class="form-range" type="range" name="q9" min="0" max="10" value="0" aria-label="Answer for question 9"><output id="rangeOutput" class="badge text-bg-primary">0</output></div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <section class="question-card p-3 p-md-4 mb-4" data-answer="1995-12-04" data-type="date">
+          <div class="d-flex gap-3"><span class="question-number">10</span><div class="flex-grow-1"><h2 class="h5">What is the release date of JavaScript (use YYYY-MM-DD)?</h2><input class="form-control" type="date" name="q10" aria-label="Answer for question 10"></div></div><div class="feedback" aria-live="polite"></div>
+        </section>
+
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4"><button type="button" id="checkBtn" class="btn btn-primary btn-lg px-4">Check My Answers</button><button type="button" id="resetBtn" class="btn btn-outline-secondary btn-lg px-4">Reset</button></div>
+      </form>
+
+      <div id="result" class="score-box p-4 mt-4 d-none" aria-live="polite"><div class="row align-items-center"><div class="col-md-8"><p class="text-info text-uppercase small fw-bold mb-1">Final result</p><h2 id="scoreText" class="mb-2"></h2><p id="message" class="mb-0"></p></div><div class="col-md-4 text-md-end mt-3 mt-md-0"><span class="display-4 fw-bold" id="scoreNumber">0</span><span class="fs-4"> / 100</span></div></div></div>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('quizForm');
+    const cards = [...document.querySelectorAll('.question-card')];
+    const correctImg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="30" fill="%2316a34a"/%3E%3Cpath d="m17 33 10 10 20-22" fill="none" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E';
+    const wrongImg = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Ccircle cx="32" cy="32" r="30" fill="%23dc2626"/%3E%3Cpath d="m21 21 22 22m0-22L21 43" fill="none" stroke="white" stroke-width="7" stroke-linecap="round"/%3E%3C/svg%3E';
+
+    function shuffleChoices() { cards.slice(0, 5).forEach(card => { const choices = [...card.querySelectorAll('.choice')]; choices.sort(() => Math.random() - .5).forEach(choice => choice.parentElement.appendChild(choice)); }); }
+    function normalized(value) { return value.trim().toLowerCase(); }
+    function getValue(card) { const type = card.dataset.type, name = card.querySelector('[name]').name; if (type === 'single') return card.querySelector(`input[name="${name}"]:checked`)?.value || ''; if (type === 'multi') return [...card.querySelectorAll(`input[name="${name}"]:checked`)].map(x=>x.value).sort().join(''); return card.querySelector('[name]').value; }
+    function updateProgress() { const answered = cards.filter(c => getValue(c) !== '').length; document.getElementById('progressText').textContent = `${answered} / 10 answered`; document.getElementById('progressBar').style.width = `${answered * 10}%`; }
+    function checkAnswers() { let score = 0, unanswered = 0; cards.forEach(card => { const answer = getValue(card), expected = card.dataset.answer, feedback = card.querySelector('.feedback'); if (!answer) unanswered++; const isCorrect = normalized(answer) === normalized(expected); if (isCorrect) score += 10; feedback.className = `feedback show ${isCorrect ? 'correct' : 'incorrect'}`; feedback.innerHTML = `<img src="${isCorrect ? correctImg : wrongImg}" alt="${isCorrect ? 'Correct' : 'Incorrect'}"> <span>${isCorrect ? 'Correct! Great work.' : `Incorrect. The correct answer is <strong>${expected}</strong>.`}</span>`; }); const attempts = Number(localStorage.getItem('jsQuizAttempts') || 0) + 1; localStorage.setItem('jsQuizAttempts', attempts); document.getElementById('attemptCount').textContent = attempts; document.getElementById('scoreNumber').textContent = score; document.getElementById('scoreText').textContent = unanswered ? `You scored ${score} points` : 'Quiz complete!'; document.getElementById('message').textContent = score > 80 ? 'Congratulations! You have a strong understanding of JavaScript.' : 'Keep practicing—review the feedback and try again.'; document.getElementById('result').classList.remove('d-none'); document.getElementById('result').scrollIntoView({behavior:'smooth', block:'center'}); }
+    function resetQuiz() { form.reset(); cards.forEach(c => { const f=c.querySelector('.feedback'); f.className='feedback'; f.innerHTML=''; }); document.getElementById('result').classList.add('d-none'); updateProgress(); document.getElementById('rangeOutput').textContent='0'; shuffleChoices(); }
+    form.addEventListener('input', e => { if (e.target.name === 'q9') document.getElementById('rangeOutput').textContent=e.target.value; updateProgress(); }); form.addEventListener('change', updateProgress); document.getElementById('checkBtn').addEventListener('click', checkAnswers); document.getElementById('resetBtn').addEventListener('click', resetQuiz); document.getElementById('attemptCount').textContent = localStorage.getItem('jsQuizAttempts') || 0; shuffleChoices();
+  </script>
+  <script src="js/script.js"></script>
+</body>
+</html>
